@@ -1,0 +1,2 @@
+# ServletRouteLikeTP5
+这是一个类TP5的servlet路由分发
