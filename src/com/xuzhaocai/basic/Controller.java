@@ -120,10 +120,38 @@ public class Controller extends HttpServlet {
 	}
 	/**
 	 * 成功提示页面
-	 * @param path
+	 * @param path 显示完要跳转的页面
+	 * @param time 秒值
+	 * @param request  
+	 * @param response
 	 */
-	public void success(String path){
-		
+	public void success(String path,int time,String message,HttpServletRequest request,HttpServletResponse response){
+		request.setAttribute("success", new com.xuzhaocai.domian.Success(message, path, time));
+		try {
+			//跳转页面
+			request.getRequestDispatcher("/view/admin/public/success.jsp").forward(request, response);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("没有找到");
+		}
+	}
+	/**
+	 * 失败提示页面
+	 * @param path
+	 * @param time
+	 * @param message
+	 * @param request
+	 * @param response
+	 */
+	public void error(String path,int time,String message,HttpServletRequest request,HttpServletResponse response){
+		request.setAttribute("error", new com.xuzhaocai.domian.Error(message, path, time));
+		try {
+			//跳转页面
+			request.getRequestDispatcher("/view/admin/public/error.jsp").forward(request, response);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("没有找到");
+		}
 	}
 	
 }
