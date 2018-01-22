@@ -1,6 +1,7 @@
 package com.xuzhaocai.basic;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.servlet.ServletContext;
@@ -8,6 +9,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.sun.net.httpserver.Authenticator.Success;
 
 public class Controller extends HttpServlet {
 	private String packageName;
@@ -23,12 +26,9 @@ public class Controller extends HttpServlet {
 		
 		//获取请求的uri
 		String path = request.getRequestURI();
-		
-		
 		int methodIndex = path.lastIndexOf("/");
 		//获取方法名
 		String method=path.substring(methodIndex+1);
-
 		int controllerIndex=path.substring(0, methodIndex).lastIndexOf("/");
 		//获取控制器名称
 		String controller= path.substring(controllerIndex+1,methodIndex);
@@ -46,14 +46,22 @@ public class Controller extends HttpServlet {
 			int packageIndex=string.indexOf(":");
 			if(module.equals(string.substring(0,packageIndex))){
 					Class<?> forName=null;
-				
 					try {
-						forName = Class.forName(string.substring(packageIndex+1)+"."+controller.substring(0, 1).toUpperCase()+controller.substring(1));
+						forName = Class.forName(string.substring(packageIndex+1)+"."+controller.substring(0,1).toUpperCase()+controller.substring(1));
 						
-						
-						Method methodInvoke = forName.getMethod(method, HttpServletRequest.class, HttpServletResponse.class);
-						String result = (String)methodInvoke.invoke(forName.newInstance(), request,response);
-					
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						throw new RuntimeException("控制器不存在");
+					}
+					Method methodInvoke=null;
+					String result=null;
+					try {
+						methodInvoke = forName.getMethod(method, HttpServletRequest.class, HttpServletResponse.class);
+						result = (String)methodInvoke.invoke(forName.newInstance(), request,response);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						throw new RuntimeException("方法不存在");
+					} 
 						if(result!=null){
 							String subResult=result.substring(0, result.indexOf(":"));
 							//根据方法反返回结果来进行转发或者重定向处理
@@ -64,9 +72,10 @@ public class Controller extends HttpServlet {
 								break;
 							case "s":
 								//自定义路径转发
+								
+								System.out.println(result.substring(result.indexOf(":")+1));
 								request.getRequestDispatcher(result.substring(result.indexOf(":")+1)).forward(request, response);
 								break;
-							
 							case "r":
 								//重定向
 								response.sendRedirect(request.getContextPath()+result.substring(result.indexOf(":")+1));
@@ -76,28 +85,24 @@ public class Controller extends HttpServlet {
 								break;
 							}
 						}
-					
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					break;
+				}
 			}
-			
-		
 		}
-		
-	}
+	
 	 /**
 	  * 转发
 	  * @param strings
 	  * @return
 	  */
 	public String view(String...strings){
+		//默认转发，
 		if(strings.length==0){
 			return "ss:";
-		}else if (strings.length==1) {
-			return "s:"+strings;
+		}else if (strings.length==1) {//自定义转发
+			
+			System.out.println("s:"+strings[0]);
+			return "s:"+strings[0];
 		}else {
 			return null;
 		}
@@ -113,6 +118,12 @@ public class Controller extends HttpServlet {
 		}
 		return null;
 	}
-	
+	/**
+	 * 成功提示页面
+	 * @param path
+	 */
+	public void success(String path){
+		
+	}
 	
 }
